@@ -20,7 +20,7 @@ class EmployeeAuthController extends Controller
         ]);
 
         // Attempt login on the "employee" guard
-        if (Auth::guard('employee')->attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::guard('employees')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended(route('employees.dashboard'));
         }
@@ -32,7 +32,7 @@ class EmployeeAuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::guard('employee')->logout();
+        Auth::guard('employees')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

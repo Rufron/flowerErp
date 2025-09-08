@@ -10,7 +10,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $employeeId = Auth::guard('employee')->id();
+        $employeeId = Auth::guard('employees')->id();
 
         // Stats for the dashboard
         $totalProducts = Product::where('employee_id', $employeeId)->count();

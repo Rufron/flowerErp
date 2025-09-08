@@ -6,7 +6,7 @@
   <!-- JS will dynamically insert items here -->
   <ul data-cart-list class="space-y-2 mb-4"></ul>
 
-  <a href="{{ route('checkout') }}"
+  <a href="{{ route('customer.checkout') }}"
      data-cart-checkout
      class="inline-block w-full text-center px-6 py-2 bg-pink-600 text-white font-medium rounded-lg shadow hover:bg-pink-700 transition">
     Checkout

@@ -42,7 +42,7 @@ return [
         ],
 
         // 👇 Employee guard
-        'employee' => [
+        'employees' => [
             'driver' => 'session',
             'provider' => 'employees',
         ],

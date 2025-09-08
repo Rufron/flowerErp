@@ -4,10 +4,11 @@
 
 @section('content')
     @include('customer.hero')
-    @include('customer.qualities')
     @include('customer.featured')
+    @include('customer.qualities')
+    {{--
     @include('customer.cart_wishlist')
     @include('customer.orders')
     @include('customer.categories')
-    @include('customer.notifications')
+    @include('customer.notifications') --}}
 @endsection

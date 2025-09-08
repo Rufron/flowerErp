@@ -27,9 +27,9 @@
 
     <!-- Place Order Button -->
     <div class="mt-6 text-right">
-        <button data-order-place class="bg-pink-600 text-white px-6 py-2 rounded-lg">
-            Place Order
-        </button>
+            <button data-order-place class="bg-pink-600 text-white px-6 py-2 rounded-lg">
+                Place Order
+            </button>
     </div>
 
 
@@ -56,6 +56,14 @@
         Place Order
     </a> --}}
 </div>
+
+<script>
+    window.csrfToken = "{{ csrf_token() }}";
+    window.routes = {
+        placeOrder: "{{ route('customer.checkout.place') }}",
+        orderSuccess: "{{ route('customer.order.success') }}"
+    };
+</script>
 
 
 <!-- Scripts -->

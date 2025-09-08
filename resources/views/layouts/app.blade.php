@@ -14,6 +14,15 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script>
+        window.routes = {
+            checkout: "{{ route('customer.checkout') }}",
+            placeOrder: "{{ route('customer.checkout.place') }}",
+            orderSuccess: "{{ route('customer.order.success') }}"
+        };
+        window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    </script>
 </head>
 
 <body class="font-sans antialiased">
@@ -39,8 +48,10 @@
         </main>
     </div>
 
-<script src="{{ asset('js/store.js') }}"></script>
-{{-- <script src="{{ asset('js/order.js') }}"></script> --}}
+    <script src="{{ asset('js/store.js') }}"></script>
+    {{-- Page-specific scripts --}}
+    @stack('scripts')
+    {{-- <script src="{{ asset('js/order.js') }}"></script> --}}
 </body>
 
 </html>
