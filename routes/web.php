@@ -3,11 +3,14 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\EmployeeAuthController;
 use App\Http\Controllers\Employee\ProductController;
 use App\Http\Controllers\Employee\DashboardController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Customer\ProductController as CustomerProductController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,9 +22,10 @@ Route::get('/', function () {
 
 // Customer routes (default users)
 Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('customer.index');
-    })->name('dashboard');
+    // Route::get('/dashboard', function () {
+    //     return view('customer.index');
+    // })->name('dashboard');
+    Route::get('/dashboard', [CustomerProductController::class, 'index'])->name('dashboard');
 
     Route::get('/checkout', function () {
         return view('customer.checkout');
@@ -35,16 +39,17 @@ Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
         return view('customer.shop');
     })->name('shop');
 
-     // Checkout pages / API
+    // Checkout pages / API
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout', [CheckoutController::class, 'placeOrder'])->name('checkout.place');
 
     // Order success page
     Route::get('/order-success', [CheckoutController::class, 'success'])->name('order.success');
 
-    Route::get('/orders', function () {
-        return view('customer.diso'); // rename file later if needed
-    })->name('orders');
+    // Route::get('/orders', function () {
+    //     return view('customer.diso'); // rename file later if needed
+    // })->name('orders');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders');
 });
 
 
@@ -67,7 +72,7 @@ Route::prefix('employees')->name('employees.')->group(function () {
         // })->name('dashboard');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        Route::resource('dashboard', DashboardController::class);
+        // Route::resource('dashboard', DashboardController::class);
 
         Route::get('/products', function () {
             return view('employees.products.index');

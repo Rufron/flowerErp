@@ -13,7 +13,7 @@ class ProductController extends Controller
     public function index()
     {
         // Fetch only products created by the logged-in employee
-        $products = Product::where('employee_id', Auth::guard('employee')->id())
+        $products = Product::where('employee_id', Auth::guard('employees')->id())
             ->latest()
             ->paginate(5);
 
@@ -47,7 +47,7 @@ class ProductController extends Controller
             'description' => $request->description,
             'stock'       => $request->stock,
             'image'       => $imagePath,
-            'employee_id' => Auth::guard('employee')->id(), // link product to logged-in employee
+            'employee_id' => Auth::guard('employees')->id(), // link product to logged-in employee
         ]);
 
         return redirect()->route('employees.products.index')
@@ -57,7 +57,7 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        $product = Product::where('employee_id', Auth::guard('employee')->id())
+        $product = Product::where('employee_id', Auth::guard('employees')->id())
             ->findOrFail($id);
 
         return view('employees.products.edit', compact('product'));
@@ -65,7 +65,7 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $product = Product::where('employee_id', Auth::guard('employee')->id())
+        $product = Product::where('employee_id', Auth::guard('employees')->id())
             ->findOrFail($id);
 
         $request->validate([
@@ -94,7 +94,7 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        $product = Product::where('employee_id', Auth::guard('employee')->id())
+        $product = Product::where('employee_id', Auth::guard('employees')->id())
             ->findOrFail($id);
 
         // Delete image from storage if it exists

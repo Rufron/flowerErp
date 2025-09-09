@@ -3,7 +3,7 @@
 @section('content')
     <div class="p-6">
         @php
-            $employee = Auth::guard('employee')->user();
+            $employee = Auth::guard('employees')->user();
         @endphp
         @if ($employee)
         <h1 class="text-2xl font-bold text-pink-600">👋 Hello {{ $employee->name }}</h1>
