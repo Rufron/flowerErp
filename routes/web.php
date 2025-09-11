@@ -10,11 +10,15 @@ use App\Http\Controllers\Employee\DashboardController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Customer\ProductController as CustomerProductController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Models\Admin;
+use App\Http\Controllers\WelcomeController;
 
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
 
 
@@ -66,10 +70,6 @@ Route::prefix('employees')->name('employees.')->group(function () {
     // Protected routes (only for logged-in employees)
     Route::middleware('auth:employees')->group(function () {
         Route::post('/logout', [EmployeeAuthController::class, 'logout'])->name('logout');
-
-        // Route::get('/dashboard', function () {
-        //     return view('employees.dashboard.index');
-        // })->name('dashboard');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Route::resource('dashboard', DashboardController::class);
@@ -84,9 +84,8 @@ Route::prefix('employees')->name('employees.')->group(function () {
             return view('employees.products.create');
         })->name('products.create');
 
-        Route::get('/orders', function () {
-            return view('employees.orders.index');
-        })->name('orders.index');
+        Route::get('/orders', [App\Http\Controllers\Employee\OrderController::class, 'index'])
+         ->name('orders.index');
 
         // Low Stock Alerts
         Route::get('/low-stock', function () {
@@ -116,6 +115,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth:admin')->group(function () {
 
         Route::get('/dashboard', [AdminProductController::class, 'dashboard'])->name('dashboard');
+        Route::patch('/orders/{order}/{status}', [AdminOrderController::class, 'update'])
+        ->name('orders.update');
         Route::get('/employees', [\App\Http\Controllers\Admin\EmployeeController::class, 'index'])->name('employees.index');
         Route::get('/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');

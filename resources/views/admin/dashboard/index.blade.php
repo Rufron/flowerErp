@@ -17,5 +17,5 @@
   @include('admin.partials._salesChart')
 
   <!-- 6. Quick Actions -->
-  @include('admin.partials._quickActions')
+  {{-- @include('admin.partials._quickActions') --}}
 @endsection

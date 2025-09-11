@@ -6,7 +6,7 @@
             $employee = Auth::guard('employees')->user();
         @endphp
         @if ($employee)
-        <h1 class="text-2xl font-bold text-pink-600">👋 Hello {{ $employee->name }}</h1>
+            <h1 class="text-2xl font-bold text-pink-600">👋 Hello {{ $employee->name }}</h1>
         @endif
 
 
@@ -19,11 +19,13 @@
             </div>
             <div class="p-4 bg-white rounded-xl shadow">
                 <h2 class="text-lg font-semibold">⚠️ Low Stock</h2>
-                <p class="mt-2 text-2xl font-bold text-red-600">8</p>
+                <p class="mt-2 text-2xl font-bold {{ $lowStockCount > 0 ? 'text-red-600' : 'text-green-600' }}">
+                    {{ $lowStockCount > 0 ? $lowStockCount : 'All Good 👍' }}
+                </p>
             </div>
             <div class="p-4 bg-white rounded-xl shadow">
                 <h2 class="text-lg font-semibold">📦 Pending Orders</h2>
-                <p class="mt-2 text-2xl font-bold text-yellow-600">5</p>
+                <p class="mt-2 text-2xl font-bold text-yellow-600"> {{ $pendingOrdersCount ?? 0 }}</p>
             </div>
         </div>
     </div>

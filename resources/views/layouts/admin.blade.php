@@ -13,7 +13,8 @@
 <body class="bg-gray-100 text-gray-800">
     <div class="flex">
         <!-- Sidebar -->
-        <aside class="w-64 bg-gradient-to-b from-pink-50 to-white shadow-xl h-screen p-6 flex flex-col">
+        <aside
+            class="sticky top-0 z-20 w-64 bg-gradient-to-b from-pink-50 to-white shadow-xl h-screen p-6 flex flex-col">
             <!-- Branding -->
             <div class="flex items-center gap-2 mb-10">
                 <span class="text-3xl">🌸</span>
@@ -30,10 +31,10 @@
                     class="flex items-center gap-3 py-2.5 px-4 rounded-lg text-gray-700 font-medium hover:bg-pink-100 hover:text-pink-700 transition">
                     <span>🌼</span> Inventory
                 </a>
-                <a href="#"
+                {{-- <a href="#"
                     class="flex items-center gap-3 py-2.5 px-4 rounded-lg text-gray-700 font-medium hover:bg-pink-100 hover:text-pink-700 transition">
                     <span>🛒</span> Orders
-                </a>
+                </a> --}}
                 <a href="{{ route('admin.employees.index') }}"
                     class="flex items-center gap-3 py-2.5 px-4 rounded-lg text-gray-700 font-medium hover:bg-pink-100 hover:text-pink-700 transition">
                     <span> 👥</span> Employees
@@ -42,7 +43,14 @@
 
             <!-- Footer -->
             <div class="mt-8 border-t pt-4 text-sm text-gray-500">
-                © 2025 Flower Admin
+                <form action="{{ route('admin.logout') }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        class="w-full flex items-center gap-3 py-2.5 px-4 rounded-lg text-red-600 font-medium hover:bg-red-100 transition">
+                        🚪 Logout
+                    </button>
+                </form>
+                <p class="mt-4 text-xs text-gray-400">© 2025 Flower Admin</p>
             </div>
         </aside>
 
