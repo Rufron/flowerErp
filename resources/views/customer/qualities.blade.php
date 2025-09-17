@@ -7,18 +7,13 @@
                     class="h-48 w-full object-cover rounded-t-xl">
                 <div class="p-4 flex flex-col items-center">
                     <h5 class="text-lg font-semibold text-gray-800">{{ $product->name }}</h5>
-                    <p class="text-pink-600 font-bold mb-3">${{ $product->price }}</p>
-                    {{-- <button
-                        class="add-to-cart px-4 py-2 bg-pink-500 text-white rounded-full shadow hover:bg-pink-600 focus:ring-2 focus:ring-pink-400 transition"
-                        data-id="{{ $product->id }}" data-name="{{ $product->name }}"
-                        data-price="{{ $product->price }}" data-qty="1">
-                        Add to Cart
-                    </button> --}}
+                    <p class="text-pink-600 font-bold mb-3">$25</p>
+
                     @if (auth()->check())
                         <button
                             class="add-to-cart px-4 py-2 bg-pink-500 text-white rounded-full shadow hover:bg-pink-600"
                             data-id="{{ $product->id }}" data-name="{{ $product->name }}"
-                            data-price="{{ $product->price }}" data-qty="1">
+                            data-price="25" data-qty="1">
                             Add to Cart
                         </button>
                     @else
