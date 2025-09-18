@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->rememberToken()->after('password');
+            $table->string('remember_token', 100)->nullable();
             $table->string('role')->default('employee'); // later can extend (employee, manager, etc.)
             $table->timestamps();
         });
