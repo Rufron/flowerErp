@@ -1,9 +1,9 @@
-# *
-# !.gitignore
+# Ignore everything by default
+*
+!.gitignore
 
-# Ignore everything in storage
-/storage/*
-
-# But keep these important files
-!/storage/app/public
-!/storage/app/public/products
+# Allow product images inside public/storage/products
+!/public
+!/public/storage
+!/public/storage/products
+!/public/storage/products/**

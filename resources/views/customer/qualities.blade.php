@@ -6,7 +6,7 @@
                 {{-- <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
                     class="h-48 w-full object-cover rounded-t-xl" > --}}
                     <img src="{{ asset('storage/products/' . basename($product->image)) }}" alt="{{ $product->name }}"
-    class="h-48 w-full object-cover rounded-t-xl">
+    class="h-48 w-full object-cover rounded-t-xl" loading="lazy">
 
 
                 <div class="p-4 flex flex-col items-center">
