@@ -101,7 +101,8 @@
         const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
 
         // POST to server
-        const url = (window.routes && window.routes.placeOrder) ? window.routes.placeOrder : '/checkout';
+        // const url = (window.routes && window.routes.placeOrder) ? window.routes.placeOrder : '/checkout';
+        const url = '/checkout';
         try {
           placeBtn.disabled = true;
           placeBtn.textContent = 'Placing order...';
