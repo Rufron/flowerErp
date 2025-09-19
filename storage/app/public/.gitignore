@@ -1,0 +1,9 @@
+# *
+# !.gitignore
+
+# Ignore everything in storage
+/storage/*
+
+# But keep these important files
+!/storage/app/public
+!/storage/app/public/products
