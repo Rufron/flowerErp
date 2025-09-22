@@ -15,7 +15,7 @@
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <!-- Branding -->
             <a href="{{ url('/') }}" class="text-2xl font-bold text-pink-600 flex items-center gap-2">
-                🌸 Flower Shop
+                Floriq  Shop
             </a>
 
             <!-- Auth Links -->
