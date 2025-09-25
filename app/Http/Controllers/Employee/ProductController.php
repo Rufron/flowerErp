@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 
 class ProductController extends Controller
 {
@@ -40,6 +41,10 @@ class ProductController extends Controller
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
+
+             // optimize it after saving
+            $fullPath = storage_path('app/public/' . $imagePath);
+            ImageOptimizer::optimize($fullPath);
         }
 
         Product::create([
@@ -78,6 +83,10 @@ class ProductController extends Controller
         // Handle image update
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
+            // optimize new image
+            $fullPath = storage_path('app/public/' . $imagePath);
+            ImageOptimizer::optimize($fullPath);
+
             $product->image = $imagePath;
         }
 
