@@ -21,7 +21,7 @@
           <td class="px-6 py-4 text-gray-600">
             @foreach($order->items as $item)
               <span class="block">
-                {{ $item->product->name }}
+                {{ $item->product->name ?? 'Unknown product'}}
                 <span class="text-gray-500 text-xs">(x{{ $item->qty }})</span>
               </span>
             @endforeach

@@ -13,6 +13,8 @@ use App\Http\Controllers\Customer\ProductController as CustomerProductController
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Models\Admin;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\Customer\StripeController;
+use App\Http\Controllers\Customer\StripeWebhookController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -54,6 +56,14 @@ Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
     //     return view('customer.diso'); // rename file later if needed
     // })->name('orders');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
+
+    // stripe payments
+    // Route::get('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
+    Route::post('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
+    Route::get('/payment/success', [StripeController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel', [StripeController::class, 'cancel'])->name('payment.cancel');
+    // Webhook
+    Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 });
 
 
