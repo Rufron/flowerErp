@@ -16,9 +16,6 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Customer\StripeController;
 use App\Http\Controllers\Customer\StripeWebhookController;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -58,8 +55,7 @@ Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
 
     // stripe payments
-    // Route::get('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
-    Route::post('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
+    Route::get('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
     Route::get('/payment/success', [StripeController::class, 'success'])->name('payment.success');
     Route::get('/payment/cancel', [StripeController::class, 'cancel'])->name('payment.cancel');
     // Webhook

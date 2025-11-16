@@ -139,8 +139,12 @@
           localStorage.removeItem(CART_KEY);
 
           // redirect to success page
-          const successUrl = (window.routes && window.routes.orderSuccess) ? window.routes.orderSuccess : '/order-success';
-          window.location.href = `${successUrl}?orderId=${data.order_id}`;
+          // const successUrl = (window.routes && window.routes.orderSuccess) ? window.routes.orderSuccess : '/order-success';
+          // window.location.href = `${successUrl}?orderId=${data.order_id}`;
+         
+          // Redirect to Stripe secure payment page
+        window.location.href = `/stripe/checkout?order_id=${data.order_id}`;
+
         } catch (err) {
           console.error(err);
           alert('An error occurred while placing the order.');
