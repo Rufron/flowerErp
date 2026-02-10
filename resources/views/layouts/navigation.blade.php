@@ -17,22 +17,21 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('customer.shop')" :active="request()->routeIs('customer.shop')">
+                    <!-- <x-nav-link :href="route('customer.shop')" :active="request()->routeIs('customer.shop')">
                         {{ __('Shop') }}
-                    </x-nav-link>
+                    </x-nav-link> -->
 
                     <x-nav-link :href="route('customer.orders')" :active="request()->routeIs('customer.orders')">
                         {{ __('orders') }}
                     </x-nav-link>
 
-                    <a href="#" class="relative inline-flex items-center">
+                    <a href="{{ route('customer.checkout') }}" class="relative inline-flex items-center hover:text-pink-600 transition">
                         🛒
-                        <span id="cart-count"
-                            class="ml-2 inline-flex items-center justify-center px-2 text-xs font-semibold bg-pink-600 text-white rounded-full">
+                        <span id="cart-count" 
+                            class="cart-count ml-2 inline-flex items-center justify-center px-2 text-xs font-semibold bg-pink-600 text-white rounded-full">
                             0
                         </span>
                     </a>
-
 
 
 

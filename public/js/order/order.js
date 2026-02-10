@@ -15,6 +15,7 @@
 
   function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    updateCartCount(); // Update cart count when cart is saved
   }
 
   function saveOrderLocal(orderObj) {
@@ -27,10 +28,61 @@
     return `$${Number(n).toFixed(2)}`;
   }
 
+  // NEW FUNCTION: Update cart count in navigation bar
+  function updateCartCount() {
+    const cart = getCart();
+    const count = cart.reduce((total, item) => total + (Number(item.qty) || 0), 0);
+    
+    // Update all cart count elements (navbar and any others)
+    const cartCountElements = document.querySelectorAll('.cart-count, #cart-count');
+    
+    cartCountElements.forEach(element => {
+      const oldCount = parseInt(element.textContent) || 0;
+      
+      // Add animation if count changed
+      if (count !== oldCount) {
+        element.classList.add('cart-count-update');
+        setTimeout(() => {
+          element.classList.remove('cart-count-update');
+        }, 300);
+      }
+      
+      element.textContent = count;
+      
+      // Hide if count is 0
+      if (count === 0) {
+        element.classList.add('hidden');
+      } else {
+        element.classList.remove('hidden');
+      }
+    });
+    
+    // Also update any elements with data-cart-count attribute
+    document.querySelectorAll('[data-cart-count]').forEach(el => {
+      el.textContent = count;
+      if (count === 0) {
+        el.classList.add('hidden');
+      } else {
+        el.classList.remove('hidden');
+      }
+    });
+  }
+
   function renderCart() {
     const cart = getCart();
     const tbody = document.querySelector('[data-order-table]');
     const subtotalEl = document.querySelector('[data-order-subtotal]');
+    const emptyCartMsg = document.querySelector('[data-empty-cart]');
+    
+    // Show/hide empty cart message
+    if (emptyCartMsg) {
+      if (cart.length === 0) {
+        emptyCartMsg.classList.remove('hidden');
+      } else {
+        emptyCartMsg.classList.add('hidden');
+      }
+    }
+    
     tbody.innerHTML = '';
 
     let subtotal = 0;
@@ -44,7 +96,7 @@
         <td class="px-2 py-3">${formatMoney(item.price)}</td>
         <td class="px-2 py-3">
           <input type="number" min="1" value="${item.qty}" data-idx="${i}" class="order-qty w-16 p-1 border rounded"/>
-          <button data-remove="${i}" class="ml-2 text-sm text-red-600">Remove</button>
+          <button data-remove="${i}" class="ml-2 text-sm text-red-600 hover:text-red-800">Remove</button>
         </td>
         <td class="px-2 py-3">${formatMoney(total)}</td>
       `;
@@ -52,6 +104,9 @@
     });
 
     if (subtotalEl) subtotalEl.textContent = formatMoney(subtotal);
+    
+    // Update cart count after rendering
+    updateCartCount();
   }
 
   function attachListeners() {
@@ -65,6 +120,9 @@
         cart.splice(idx, 1);
         saveCart(cart);
         renderCart();
+        
+        // Show removal feedback
+        showNotification('Item removed from cart');
       }
     });
 
@@ -77,6 +135,9 @@
           cart[idx].qty = val;
           saveCart(cart);
           renderCart();
+          
+          // Show quantity update feedback
+          showNotification('Cart updated');
         }
       }
     });
@@ -101,8 +162,7 @@
         const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
 
         // POST to server
-        // const url = (window.routes && window.routes.placeOrder) ? window.routes.placeOrder : '/checkout';
-        const url = '/checkout';
+        const url = (window.routes && window.routes.placeOrder) ? window.routes.placeOrder : '/checkout';
         try {
           placeBtn.disabled = true;
           placeBtn.textContent = 'Placing order...';
@@ -137,6 +197,9 @@
 
           // clear cart
           localStorage.removeItem(CART_KEY);
+          
+          // Update cart count to 0
+          updateCartCount();
 
           // redirect to success page
           const successUrl = (window.routes && window.routes.orderSuccess) ? window.routes.orderSuccess : '/order-success';
@@ -149,10 +212,72 @@
         }
       });
     }
+    
+    // Continue shopping button
+    const continueBtn = document.querySelector('[data-continue-shopping]');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', function() {
+        window.location.href = (window.routes && window.routes.qualities) ? window.routes.qualities : '/qualities';
+      });
+    }
+  }
+  
+  // NEW FUNCTION: Show notification
+  function showNotification(message) {
+    // Check if notification already exists
+    const existingNotification = document.querySelector('.cart-notification');
+    if (existingNotification) {
+      existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'cart-notification fixed top-4 right-4 bg-pink-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.textContent = message;
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.style.opacity = '1';
+      notification.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateY(-20px)';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, 300);
+    }, 3000);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    // Initialize cart count
+    updateCartCount();
+    
+    // Render cart and attach listeners
     renderCart();
     attachListeners();
+    
+    // Also update cart count when window gains focus (in case cart was updated in another tab)
+    window.addEventListener('storage', function(e) {
+      if (e.key === CART_KEY) {
+        updateCartCount();
+        renderCart();
+      }
+    });
+    
+    // Update cart count when page becomes visible
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        updateCartCount();
+      }
+    });
   });
 })();

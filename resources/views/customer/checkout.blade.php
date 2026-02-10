@@ -25,12 +25,7 @@
         <span data-order-subtotal>$0.00</span>
     </div>
 
-    <!-- Place Order Button -->
-    <!-- <div class="mt-6 text-right">
-            <button data-order-place class="bg-pink-600 text-white px-6 py-2 rounded-lg">
-                Place Order
-            </button>
-    </div> -->
+
 
     <form action="{{ route('customer.stripe.checkout') }}" method="POST">
     @csrf

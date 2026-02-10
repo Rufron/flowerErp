@@ -26,4 +26,18 @@ class ProductController extends Controller
 
         return view('customer.index', compact('products'));
     }
+
+    public function show($id)
+    {
+        // Just get the product WITHOUT loading employee relationship
+        $product = Product::findOrFail($id);
+        
+        // Get related products (excluding current product)
+        $relatedProducts = Product::where('id', '!=', $product->id)
+                                  ->inRandomOrder()
+                                  ->limit(4)
+                                  ->get();
+        
+        return view('customer.product-detail', compact('product', 'relatedProducts'));
+    }
 }

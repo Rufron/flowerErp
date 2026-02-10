@@ -33,6 +33,15 @@ Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
     // })->name('dashboard');
     Route::get('/dashboard', [CustomerProductController::class, 'index'])->name('dashboard');
 
+    // product detail route
+    Route::get('/product/{id}', [CustomerProductController::class, 'show'])->name('product.detail');
+
+    // individual checkout route.
+    Route::get('/checkout/direct/{productId}', [CheckoutController::class, 'directCheckout'])->name('checkout.direct');
+
+    // to add many other cart in checkout
+    Route::post('/cart/add', [CheckoutController::class, 'addToCart'])->name('cart.add');
+    
     Route::get('/checkout', function () {
         return view('customer.checkout');
     })->name('checkout');
