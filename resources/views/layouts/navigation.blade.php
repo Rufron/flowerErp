@@ -5,8 +5,15 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('customer.dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                    <a href="{{ route('customer.dashboard') }}" class="flex items-center space-x-2">
+                        <!-- Flower Icon -->
+                        <svg class="h-9 w-auto fill-current text-pink-500" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C12 2 9 4 9 7C9 9 12 11 12 11C12 11 15 9 15 7C15 4 12 2 12 2Z"/>
+                            <path d="M12 11C12 11 14 13 14 16C14 19 12 21 12 21C12 21 10 19 10 16C10 13 12 11 12 11Z"/>
+                            <circle cx="12" cy="9" r="2" fill="white"/>
+                        </svg>
+                        <!-- Site Name -->
+                        <span class="font-semibold text-xl text-gray-800 dark:text-gray-200">FloriQ</span>
                     </a>
                 </div>
 
@@ -41,7 +48,7 @@
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
+                    <!-- <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
@@ -52,6 +59,25 @@
                                     <path fill-rule="evenodd"
                                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
                                         clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </button>
+                    </x-slot> -->
+
+                   <x-slot name="trigger">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                            <!-- User Avatar Placeholder -->
+                            <div class="h-6 w-6 rounded-full bg-pink-100 dark:bg-pink-900 flex items-center justify-center mr-2">
+                                <span class="text-xs font-medium text-pink-600 dark:text-pink-300">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </span>
+                            </div>
+                            
+                            <div>{{ Auth::user()->name }}</div>
+
+                            <div class="ms-1">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>

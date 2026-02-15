@@ -8,11 +8,12 @@
                     <img src="{{ asset('storage/products/' . basename($product->image)) }}" 
                          alt="{{ $product->name }}"
                          class="h-48 w-full object-cover rounded-t-xl hover:opacity-90 transition">
+                         
                 </a>
                 
                 <div class="p-4 flex flex-col items-center">
                     <h5 class="text-lg font-semibold text-gray-800 mb-2">{{ $product->name }}</h5>
-                    <p class="text-pink-600 font-bold mb-3">${{ number_format($product->price, 2) }}</p>
+                    <p class="text-pink-600 font-bold mb-3">${{ number_format($product->price ?? 25, 2) }}</p>
 
                     <!-- Simple link to detail page -->
                     <a href="{{ route('customer.product.detail', $product->id) }}"

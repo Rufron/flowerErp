@@ -5,10 +5,11 @@
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <div class="md:flex">
             <!-- Product Image -->
-            <div class="md:w-1/2 p-6">
+            
+          <div class="md:w-1/2 p-6 flex justify-center">
                 <img src="{{ asset('storage/products/' . basename($product->image)) }}" 
-                     alt="{{ $product->name }}"
-                     class="w-full h-96 object-cover rounded-xl shadow-md">
+                    alt="{{ $product->name }}"
+                    class="w-full h-64 object-cover rounded-xl shadow-md">
             </div>
 
             <!-- Product Details -->

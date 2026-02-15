@@ -15,12 +15,17 @@ use App\Models\Admin;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Customer\StripeController;
 use App\Http\Controllers\Customer\StripeWebhookController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+
+ // Google login
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 
 
@@ -31,6 +36,8 @@ Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
     // Route::get('/dashboard', function () {
     //     return view('customer.index');
     // })->name('dashboard');
+
+
     Route::get('/dashboard', [CustomerProductController::class, 'index'])->name('dashboard');
 
     // product detail route
