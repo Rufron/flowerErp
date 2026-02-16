@@ -122,7 +122,7 @@ class CheckoutController extends Controller
         // Calculate totals
         $subtotal = 0;
         foreach ($cart as $item) {
-            $subtotal += ($item['price'] * $item['quantity']);
+            $subtotal += ($item['price'] * $item['qty']);
         }
         
         return view('customer.checkout', compact('cart', 'subtotal'));

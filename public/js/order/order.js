@@ -280,4 +280,36 @@
       }
     });
   });
+
+// last addition
+  // Add this at the end of order.js to notify other scripts when cart updates
+function notifyCartUpdated() {
+    const event = new CustomEvent('cartUpdated', { 
+        detail: { 
+            subtotal: parseFloat(document.querySelector('[data-order-subtotal]')?.textContent?.replace('$', '') || '0') 
+        } 
+    });
+    document.dispatchEvent(event);
+}
+
+// Override or extend the existing renderCart function
+const originalRenderCart = renderCart;
+renderCart = function() {
+    originalRenderCart();
+    // Notify after rendering
+    setTimeout(notifyCartUpdated, 100);
+};
+
+// Also notify on quantity changes
+document.addEventListener('change', function(e) {
+    if (e.target.matches('.order-qty')) {
+        setTimeout(notifyCartUpdated, 200);
+    }
+});
+
+// Initial notification
+setTimeout(notifyCartUpdated, 500);
+
+
+
 })();

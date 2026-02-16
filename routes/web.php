@@ -16,16 +16,24 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Customer\StripeController;
 use App\Http\Controllers\Customer\StripeWebhookController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\MpesaController;
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+
+Route::post('/test-csrf', function() {
+    return response()->json(['message' => 'CSRF bypass working!']);
+});
+
+
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
  // Google login
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
 
 
 
@@ -154,6 +162,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // mpesa routes
+    Route::post('/mpesa/stk-push', [MpesaController::class, 'stkPush'])->name('customer.mpesa.stk-push');
+    Route::get('/mpesa/pending', [MpesaController::class, 'pending'])->name('customer.mpesa.pending');
+    Route::get('/mpesa/status', [MpesaController::class, 'status'])->name('customer.mpesa.status');
 });
+
+// Public callback route (no auth)
+Route::post('/mpesa/callback', [MpesaController::class, 'callback'])->name('customer.mpesa.callback');
+
 
 require __DIR__ . '/auth.php';
