@@ -86,76 +86,164 @@ class MpesaController extends Controller
      * M-PESA Callback URL
      */
 
-    public function callback(Request $request)
-    {
-        // Log EVERYTHING
-        Log::info('========== MPESA CALLBACK RECEIVED ==========');
-        Log::info('Full callback data:', $request->all());
-        Log::info('Raw content: ' . $request->getContent());
+    // public function callback(Request $request)
+    // {
+    //     // Log EVERYTHING
+    //     Log::info('========== MPESA CALLBACK RECEIVED ==========');
+    //     Log::info('Full callback data:', $request->all());
+    //     Log::info('Raw content: ' . $request->getContent());
         
-        try {
-            $callbackData = $request->all();
+    //     try {
+    //         $callbackData = $request->all();
             
-            if (isset($callbackData['Body']['stkCallback'])) {
-                $stkCallback = $callbackData['Body']['stkCallback'];
-                $checkoutRequestID = $stkCallback['CheckoutRequestID'];
-                $resultCode = $stkCallback['ResultCode'];
-                $resultDesc = $stkCallback['ResultDesc'];
+    //         if (isset($callbackData['Body']['stkCallback'])) {
+    //             $stkCallback = $callbackData['Body']['stkCallback'];
+    //             $checkoutRequestID = $stkCallback['CheckoutRequestID'];
+    //             $resultCode = $stkCallback['ResultCode'];
+    //             $resultDesc = $stkCallback['ResultDesc'];
                 
-                Log::info('Callback details:', [
-                    'CheckoutRequestID' => $checkoutRequestID,
-                    'ResultCode' => $resultCode,
-                    'ResultDesc' => $resultDesc
-                ]);
+    //             Log::info('Callback details:', [
+    //                 'CheckoutRequestID' => $checkoutRequestID,
+    //                 'ResultCode' => $resultCode,
+    //                 'ResultDesc' => $resultDesc
+    //             ]);
                 
-                // IMPORTANT: The callback comes from M-PESA, not from the user's browser
-                // So it doesn't have the session cookie!
-                // We need to find the session by the CheckoutRequestID
+    //             // IMPORTANT: The callback comes from M-PESA, not from the user's browser
+    //             // So it doesn't have the session cookie!
+    //             // We need to find the session by the CheckoutRequestID
                 
-                // Instead of using session(), we need to store payment status
-                // in a way that can be accessed without the session
+    //             // Instead of using session(), we need to store payment status
+    //             // in a way that can be accessed without the session
                 
-                if ($resultCode == 0) {
+    //             if ($resultCode == 0) {
+    //                 // Payment successful
+    //                 $callbackMetadata = $stkCallback['CallbackMetadata']['Item'] ?? [];
+                    
+    //                 $transactionDetails = [];
+    //                 foreach ($callbackMetadata as $item) {
+    //                     $transactionDetails[$item['Name']] = $item['Value'] ?? null;
+    //                 }
+                    
+    //                 Log::info('Payment successful!', $transactionDetails);
+                    
+    //                 // STORE IN DATABASE OR CACHE WITH THE CHECKOUT REQUEST ID
+    //                 // Option 1: Use Cache (simpler)
+    //                 Cache::put('mpesa_' . $checkoutRequestID, [
+    //                     'success' => true,
+    //                     'transaction' => $transactionDetails
+    //                 ], now()->addMinutes(10));
+                    
+    //                 // Option 2: You could also create the order here
+    //                 // $this->createOrder($checkoutRequestID, $transactionDetails);
+                    
+    //             } else {
+    //                 Log::error('Payment failed:', [
+    //                     'code' => $resultCode,
+    //                     'desc' => $resultDesc
+    //                 ]);
+                    
+    //                 Cache::put('mpesa_' . $checkoutRequestID, [
+    //                     'success' => false,
+    //                     'reason' => $resultDesc
+    //                 ], now()->addMinutes(10));
+    //             }
+    //         }
+            
+    //     } catch (\Exception $e) {
+    //         Log::error('Callback exception: ' . $e->getMessage());
+    //         Log::error($e->getTraceAsString());
+    //     }
+        
+    //     return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Success']);
+    // }
+
+    public function callback(Request $request)
+{
+    // Log EVERYTHING
+    Log::info('========== MPESA CALLBACK RECEIVED ==========');
+    Log::info('Full callback data:', $request->all());
+    Log::info('Raw content: ' . $request->getContent());
+    
+    try {
+        $callbackData = $request->all();
+        
+        if (isset($callbackData['Body']['stkCallback'])) {
+            $stkCallback = $callbackData['Body']['stkCallback'];
+            $checkoutRequestID = $stkCallback['CheckoutRequestID'];
+            $resultCode = $stkCallback['ResultCode'];
+            $resultDesc = $stkCallback['ResultDesc'];
+            
+            Log::info('Callback details:', [
+                'CheckoutRequestID' => $checkoutRequestID,
+                'ResultCode' => $resultCode,
+                'ResultDesc' => $resultDesc
+            ]);
+            
+            // Store the callback data in cache
+            Cache::put('mpesa_callback_' . $checkoutRequestID, [
+                'result_code' => $resultCode,
+                'result_desc' => $resultDesc,
+                'timestamp' => now()
+            ], now()->addMinutes(30));
+            
+            // Handle different result codes
+            switch ($resultCode) {
+                case 0:
                     // Payment successful
-                    $callbackMetadata = $stkCallback['CallbackMetadata']['Item'] ?? [];
+                    $this->handleSuccessfulPayment($stkCallback, $checkoutRequestID);
+                    break;
                     
-                    $transactionDetails = [];
-                    foreach ($callbackMetadata as $item) {
-                        $transactionDetails[$item['Name']] = $item['Value'] ?? null;
-                    }
-                    
-                    Log::info('Payment successful!', $transactionDetails);
-                    
-                    // STORE IN DATABASE OR CACHE WITH THE CHECKOUT REQUEST ID
-                    // Option 1: Use Cache (simpler)
-                    Cache::put('mpesa_' . $checkoutRequestID, [
-                        'success' => true,
-                        'transaction' => $transactionDetails
-                    ], now()->addMinutes(10));
-                    
-                    // Option 2: You could also create the order here
-                    // $this->createOrder($checkoutRequestID, $transactionDetails);
-                    
-                } else {
-                    Log::error('Payment failed:', [
-                        'code' => $resultCode,
-                        'desc' => $resultDesc
-                    ]);
-                    
+                case 1032:
+                    // Transaction cancelled by user
+                    Log::warning('Transaction cancelled by user: ' . $resultDesc);
                     Cache::put('mpesa_' . $checkoutRequestID, [
                         'success' => false,
-                        'reason' => $resultDesc
+                        'reason' => 'Transaction cancelled by user',
+                        'result_desc' => $resultDesc
                     ], now()->addMinutes(10));
-                }
+                    break;
+                    
+                case 1037:
+                    // DS timeout user cannot be reached
+                    Log::error('DS timeout - user cannot be reached: ' . $resultDesc);
+                    Cache::put('mpesa_' . $checkoutRequestID, [
+                        'success' => false,
+                        'reason' => 'Payment timeout - please try again',
+                        'result_desc' => $resultDesc
+                    ], now()->addMinutes(10));
+                    break;
+                    
+                case 1031:
+                    // Transaction expired
+                    Log::error('Transaction expired: ' . $resultDesc);
+                    Cache::put('mpesa_' . $checkoutRequestID, [
+                        'success' => false,
+                        'reason' => 'Payment expired - please try again',
+                        'result_desc' => $resultDesc
+                    ], now()->addMinutes(10));
+                    break;
+                    
+                default:
+                    // Other errors
+                    Log::error('Payment failed with code ' . $resultCode . ': ' . $resultDesc);
+                    Cache::put('mpesa_' . $checkoutRequestID, [
+                        'success' => false,
+                        'reason' => 'Payment failed: ' . $resultDesc,
+                        'result_code' => $resultCode,
+                        'result_desc' => $resultDesc
+                    ], now()->addMinutes(10));
+                    break;
             }
-            
-        } catch (\Exception $e) {
-            Log::error('Callback exception: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
         }
         
-        return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Success']);
+    } catch (\Exception $e) {
+        Log::error('Callback exception: ' . $e->getMessage());
+        Log::error($e->getTraceAsString());
     }
+    
+    // Always return success to M-PESA
+    return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Success']);
+}
 
   
 
