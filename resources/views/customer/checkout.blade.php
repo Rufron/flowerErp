@@ -190,13 +190,84 @@
     </div>
 
     <!-- Stripe Form -->
-    <form id="stripe-form" action="{{ route('customer.stripe.checkout') }}" method="POST" class="mb-4">
+    <!-- <form id="stripe-form" action="{{ route('customer.stripe.checkout') }}" method="POST" class="mb-4">
         @csrf
         <button type="submit" class="w-full bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition transform hover:scale-[1.02]">
             Pay with Card (Stripe) - USD $<span data-stripe-amount>0.00</span>
         </button>
-    </form>
+    </form> -->
+    <button id="stripe-pay-button" class="w-full bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition transform hover:scale-[1.02]">
+        Pay with Card (Stripe) - USD $<span data-stripe-amount>0.00</span>
+    </button>
 </div>
+
+<!-- for stripe form -->
+ <script>
+document.getElementById('stripe-pay-button').addEventListener('click', async function() {
+    const button = this;
+    const originalText = button.textContent;
+    
+    try {
+        // Get cart from localStorage
+        const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
+        
+        if (cart.length === 0) {
+            alert('Your cart is empty');
+            return;
+        }
+        
+        // Disable button and show loading state
+        button.disabled = true;
+        button.textContent = 'Processing...';
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+        
+        // Send cart to server to create Stripe session
+        const response = await fetch('{{ route("customer.stripe.checkout") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                cart: cart  // Send cart as object, not stringified again
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.url) {
+            // Redirect to Stripe checkout
+            window.location.href = data.url;
+        } else {
+            throw new Error(data.message || 'Error processing payment');
+        }
+    } catch (error) {
+        console.error('Stripe checkout error:', error);
+        alert('Error processing payment: ' + error.message);
+        
+        // Re-enable button
+        button.disabled = false;
+        button.textContent = originalText;
+        button.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+});
+
+// Update the amount display when cart changes
+function updateStripeAmount() {
+    const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.qty), 0);
+    const amountSpan = document.querySelector('[data-stripe-amount]');
+    if (amountSpan) {
+        amountSpan.textContent = subtotal.toFixed(2);
+    }
+}
+
+// Update amount on page load and when cart changes
+document.addEventListener('DOMContentLoaded', updateStripeAmount);
+document.addEventListener('cartUpdated', updateStripeAmount);
+</script>
+
 
 <!-- Exchange Rate -->
 <script>
@@ -375,6 +446,25 @@
         // Initial update
         setTimeout(updateMpesaAmounts, 500);
         observeCartChanges();
+    });
+
+
+    
+
+</script>
+
+<!-- just another trial will remove this -->
+ <script>
+    // Disable the order.js place order functionality when using Stripe
+    window.disablePlaceOrder = true;
+    
+    // Override the place order listener in order.js
+    document.addEventListener('DOMContentLoaded', function() {
+        // Find and disable the place order button that order.js might be looking for
+        const placeOrderBtn = document.querySelector('[data-order-place]');
+        if (placeOrderBtn) {
+            placeOrderBtn.style.display = 'none';
+        }
     });
 </script>
 

@@ -31,6 +31,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Add this import
+use Illuminate\Database\Eloquent\Relations\BelongsTo; 
 
 class Order extends Model
 {
@@ -53,6 +55,11 @@ class Order extends Model
         'payment_details' => 'array',
         'subtotal' => 'decimal:2'
     ];
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 
     public function user()
     {
