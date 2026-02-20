@@ -17,4 +17,5 @@ php artisan view:cache
 # php artisan migrate --force
 
 # Start PHP-FPM
-exec "$@"
+# exec "$@"
+exec apache2-foreground
