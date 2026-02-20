@@ -46,8 +46,8 @@
 # ENTRYPOINT ["docker-entrypoint.sh"]
 # CMD ["php-fpm"]
 
-
-FROM php:8.2-apache  # Changed from php:8.2-fpm
+# Changed from php:8.2-fpm
+FROM php:8.2-apache  
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
