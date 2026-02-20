@@ -31,7 +31,7 @@ COPY . .
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Install Node dependencies and build assets
-RUN npm ci && npm run production
+# RUN npm ci && npm run production
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
