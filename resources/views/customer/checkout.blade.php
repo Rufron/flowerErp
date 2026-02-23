@@ -1,58 +1,3 @@
-<!-- @extends('layouts.checkout')
-<div class="p-8 bg-white rounded-2xl shadow-lg max-w-3xl mx-auto mt-8">
-    
-    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-        🛍️ <span class="ml-2">Checkout</span>
-    </h2>
-
-    
-    <table class="w-full border">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody data-order-table></tbody>
-    </table>
-
-    
-    <div class="text-right mt-4">
-        <strong>Subtotal: </strong>
-        <span data-order-subtotal>$0.00</span>
-    </div>
-
-
-
-    <form action="{{ route('customer.stripe.checkout') }}" method="POST">
-    @csrf
-        <button class="bg-pink-600 text-white px-6 py-2 rounded-lg">
-            Pay with Card
-        </button>
-    </form>
-
-</div>
-
-<script>
-    window.csrfToken = "{{ csrf_token() }}";
-    window.routes = {
-        placeOrder: "{{ route('customer.checkout.place') }}",
-        orderSuccess: "{{ route('customer.order.success') }}"
-    };
-</script>
-
-
-<script src="/js/store.js"></script>
-<script src="/js/order/order.js"></script> -->
-
-
-
-
-
-
-
 @extends('layouts.checkout')
 
 <script>
@@ -86,14 +31,13 @@
                 <th class="px-4 py-2 text-left">Total</th>
             </tr>
         </thead>
-        <tbody data-order-table></tbody> <!-- This matches what order.js expects -->
+        <tbody data-order-table></tbody>
     </table>
 
-    <!-- Subtotal - Note: order.js looks for data-order-subtotal -->
+    <!-- Subtotal -->
     <div class="text-right mt-4 mb-8">
         <strong class="text-lg">Subtotal: </strong>
         <span class="text-xl font-bold text-pink-600" data-order-subtotal>$0.00</span>
-        <!-- Hidden span for KES (will be updated by our custom code) -->
         <span class="hidden" data-order-subtotal-kes>0</span>
     </div>
 
@@ -127,11 +71,18 @@
         </div>
     </div>
 
-    <!-- MPESA Phone Number Input -->
+    <!-- Payment Method Sections -->
+    <div id="stripe-section" class="mb-4">
+        <button id="stripe-pay-button" class="w-full bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition transform hover:scale-[1.02]">
+            Pay with Card (Stripe) - USD $<span data-stripe-amount>0.00</span>
+        </button>
+    </div>
+
+    <!-- MPESA Section -->
     <div id="mpesa-section" class="mb-8 p-6 border border-green-200 rounded-lg bg-green-50 hidden">
         <h3 class="text-lg font-semibold text-green-800 mb-4">M-PESA Payment Details</h3>
         
-        <form id="mpesa-payment-form" action="{{ route('customer.mpesa.stk-push') }}" method="POST">
+        <form id="mpesa-payment-form" method="POST">
             @csrf
             <div class="mb-4">
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
@@ -158,21 +109,8 @@
                     KES 0
                 </div>
                 <input type="hidden" name="amount" id="mpesa-amount-input" value="">
-                <input type="hidden" name="order_id" id="order-id-input" value="">
                 <input type="hidden" name="usd_amount" id="usd-amount-input" value="">
-                <input type="hidden" name="cart_data" id="cart-data-input" value="">
             </div>
-
-            <!-- before submission -->
-             <script>
-                // Before form submission, add cart data
-                document.getElementById('mpesa-payment-form').addEventListener('submit', function(e) {
-                    const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
-                    document.getElementById('cart-data-input').value = JSON.stringify(cart);
-                    
-                    console.log('📦 Sending cart data:', cart);
-                });
-            </script>
 
             <button type="submit" 
                     id="mpesa-submit-btn"
@@ -188,27 +126,144 @@
             You will receive an STK push prompt on your phone. Enter your PIN to complete payment.
         </p>
     </div>
-
-    <!-- Stripe Form -->
-    <!-- <form id="stripe-form" action="{{ route('customer.stripe.checkout') }}" method="POST" class="mb-4">
-        @csrf
-        <button type="submit" class="w-full bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition transform hover:scale-[1.02]">
-            Pay with Card (Stripe) - USD $<span data-stripe-amount>0.00</span>
-        </button>
-    </form> -->
-    <button id="stripe-pay-button" class="w-full bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition transform hover:scale-[1.02]">
-        Pay with Card (Stripe) - USD $<span data-stripe-amount>0.00</span>
-    </button>
 </div>
 
-<!-- for stripe form -->
- <script>
-document.getElementById('stripe-pay-button').addEventListener('click', async function() {
-    const button = this;
-    const originalText = button.textContent;
+<!-- Exchange Rate -->
+<script>
+    window.exchangeRate = {{ env('USD_TO_KES_RATE', 130) }};
+</script>
+
+<!-- Main Checkout Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stripeSection = document.getElementById('stripe-section');
+    const mpesaSection = document.getElementById('mpesa-section');
+    const stripeRadio = document.getElementById('payment_stripe');
+    const mpesaRadio = document.getElementById('payment_mpesa');
+    const stripeButton = document.getElementById('stripe-pay-button');
+    const mpesaForm = document.getElementById('mpesa-payment-form');
+    const mpesaAmountDisplay = document.getElementById('mpesa-amount-display');
+    const mpesaAmountInput = document.getElementById('mpesa-amount-input');
+    const usdAmountInput = document.getElementById('usd-amount-input');
     
-    try {
-        // Get cart from localStorage
+    // Function to get subtotal
+    function getSubtotal() {
+        const subtotalElement = document.querySelector('[data-order-subtotal]');
+        if (subtotalElement) {
+            const subtotalText = subtotalElement.textContent;
+            const match = subtotalText.match(/[\d.]+/);
+            return match ? parseFloat(match[0]) : 0;
+        }
+        return 0;
+    }
+
+    // Convert USD to KES
+    function usdToKes(usdAmount) {
+        return Math.round(usdAmount * window.exchangeRate);
+    }
+
+    // Update amounts
+    function updateAmounts() {
+        const usdAmount = getSubtotal();
+        const kesAmount = usdToKes(usdAmount);
+        
+        // Update Stripe amount
+        const stripeAmountSpan = document.querySelector('[data-stripe-amount]');
+        if (stripeAmountSpan) {
+            stripeAmountSpan.textContent = usdAmount.toFixed(2);
+        }
+        
+        // Update MPESA amounts
+        if (mpesaAmountDisplay) {
+            mpesaAmountDisplay.textContent = 'KES ' + kesAmount.toLocaleString();
+        }
+        if (mpesaAmountInput) {
+            mpesaAmountInput.value = kesAmount;
+        }
+        if (usdAmountInput) {
+            usdAmountInput.value = usdAmount;
+        }
+        
+        // Update KES hidden element
+        const kesElement = document.querySelector('[data-order-subtotal-kes]');
+        if (kesElement) {
+            kesElement.textContent = kesAmount;
+        }
+    }
+
+    // Toggle payment method sections
+    function togglePaymentMethod() {
+        if (stripeRadio.checked) {
+            stripeSection.classList.remove('hidden');
+            mpesaSection.classList.add('hidden');
+        } else {
+            stripeSection.classList.add('hidden');
+            mpesaSection.classList.remove('hidden');
+            updateAmounts(); // Update amounts when switching to MPESA
+        }
+    }
+    
+    // Event listeners for radio buttons
+    stripeRadio.addEventListener('change', togglePaymentMethod);
+    mpesaRadio.addEventListener('change', togglePaymentMethod);
+    
+    // Initial toggle
+    togglePaymentMethod();
+    updateAmounts();
+
+    // Stripe payment handler
+    stripeButton.addEventListener('click', async function() {
+        const button = this;
+        const originalText = button.textContent;
+        
+        try {
+            // Get cart from localStorage
+            const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
+            
+            if (cart.length === 0) {
+                alert('Your cart is empty');
+                return;
+            }
+            
+            // Disable button
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            button.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Send to server
+            const response = await fetch('{{ route("customer.stripe.checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    cart: cart,
+                    payment_method: 'stripe'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.message || 'Error processing payment');
+            }
+        } catch (error) {
+            console.error('Stripe error:', error);
+            alert('Error: ' + error.message);
+            button.disabled = false;
+            button.textContent = originalText;
+            button.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    });
+
+    // MPESA form handler
+    mpesaForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
         const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
         
         if (cart.length === 0) {
@@ -216,258 +271,75 @@ document.getElementById('stripe-pay-button').addEventListener('click', async fun
             return;
         }
         
-        // Disable button and show loading state
-        button.disabled = true;
-        button.textContent = 'Processing...';
-        button.classList.add('opacity-50', 'cursor-not-allowed');
-        
-        // Send cart to server to create Stripe session
-        const response = await fetch('{{ route("customer.stripe.checkout") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ 
-                cart: cart  // Send cart as object, not stringified again
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.url) {
-            // Redirect to Stripe checkout
-            window.location.href = data.url;
-        } else {
-            throw new Error(data.message || 'Error processing payment');
-        }
-    } catch (error) {
-        console.error('Stripe checkout error:', error);
-        alert('Error processing payment: ' + error.message);
-        
-        // Re-enable button
-        button.disabled = false;
-        button.textContent = originalText;
-        button.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-});
-
-// Update the amount display when cart changes
-function updateStripeAmount() {
-    const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
-    const subtotal = cart.reduce((total, item) => total + (item.price * item.qty), 0);
-    const amountSpan = document.querySelector('[data-stripe-amount]');
-    if (amountSpan) {
-        amountSpan.textContent = subtotal.toFixed(2);
-    }
-}
-
-// Update amount on page load and when cart changes
-document.addEventListener('DOMContentLoaded', updateStripeAmount);
-document.addEventListener('cartUpdated', updateStripeAmount);
-</script>
-
-
-<!-- Exchange Rate -->
-<script>
-    window.exchangeRate = {{ env('USD_TO_KES_RATE', 130) }};
-</script>
-
-<script>
- // Debug function
-    function debugMpesaFlow() {
-        console.log('🔍 MPESA Debug Mode Activated');
-        console.log('📦 Cart contents:', JSON.parse(localStorage.getItem('flower_cart_v1') || '[]'));
-        console.log('📍 Current URL:', window.location.href);
-        console.log('🛣️ Routes available:', window.routes);
-        console.log('🔑 CSRF Token exists:', !!window.csrfToken);
-    }
-    
-    // Run debug on page load
-    debugMpesaFlow();
-    
-    // Override the form submission to see what's happening
-    document.getElementById('mpesa-payment-form').addEventListener('submit', function(e) {
-        e.preventDefault(); // Temporarily prevent submission to debug
-        console.log('🚀 MPESA Form Submitted!');
-        
-        const formData = new FormData(this);
-        console.log('📤 Form Data:');
-        for (let [key, value] of formData.entries()) {
-            console.log(`   ${key}: ${value}`);
-        }
-        
-        // Check if cart is empty
-        const cart = JSON.parse(localStorage.getItem('flower_cart_v1') || '[]');
-        console.log('🛒 Cart items:', cart.length);
-        
-        if (cart.length === 0) {
-            console.error('❌ Cart is empty!');
-            alert('Your cart is empty. Please add items before paying.');
+        const phone = document.getElementById('phone').value;
+        if (!phone || !phone.match(/254[0-9]{9}/)) {
+            alert('Please enter a valid phone number (Format: 254712345678)');
             return;
         }
         
-        // Now actually submit the form
-        console.log('✅ Validation passed, submitting form...');
-        this.submit(); // Actually submit the form
-    });
-
-
-
-    // Make sure routes are available globally
-    window.csrfToken = "{{ csrf_token() }}";
-    window.routes = {
-        placeOrder: "{{ route('customer.checkout.place') }}",
-        orderSuccess: "{{ route('customer.order.success') }}",
-        mpesaStkPush: "{{ route('customer.mpesa.stk-push') }}",
-        mpesaCallback: "{{ route('customer.mpesa.callback') }}"
-    };
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const stripeSection = document.getElementById('stripe-form');
-        const mpesaSection = document.getElementById('mpesa-section');
-        const stripeRadio = document.getElementById('payment_stripe');
-        const mpesaRadio = document.getElementById('payment_mpesa');
-        const mpesaAmountDisplay = document.getElementById('mpesa-amount-display');
-        const mpesaAmountInput = document.getElementById('mpesa-amount-input');
-        const usdAmountInput = document.getElementById('usd-amount-input');
-        const mpesaSubmitBtn = document.getElementById('mpesa-submit-btn');
+        const submitBtn = document.getElementById('mpesa-submit-btn');
+        const originalBtnText = submitBtn.innerHTML;
         
-        // Function to get subtotal from the data-order-subtotal element
-        function getSubtotalFromDisplay() {
-            const subtotalElement = document.querySelector('[data-order-subtotal]');
-            if (subtotalElement) {
-                const subtotalText = subtotalElement.textContent;
-                // Extract number from string like "$25.00"
-                const match = subtotalText.match(/[\d.]+/);
-                return match ? parseFloat(match[0]) : 0;
-            }
-            return 0;
-        }
-
-        // Convert USD to KES
-        function usdToKes(usdAmount) {
-            return Math.round(usdAmount * window.exchangeRate);
-        }
-
-        // Update MPESA amounts
-        function updateMpesaAmounts() {
-            const usdAmount = getSubtotalFromDisplay();
-            const kesAmount = usdToKes(usdAmount);
+        try {
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Processing...</span>';
             
-            // Store KES amount in data attribute for other functions
-            const kesElement = document.querySelector('[data-order-subtotal-kes]');
-            if (kesElement) {
-                kesElement.textContent = kesAmount;
-            }
+            // Prepare form data
+            const formData = new FormData(this);
+            formData.append('cart_data', JSON.stringify(cart));
             
-            // Update MPESA display
-            if (mpesaAmountDisplay) {
-                mpesaAmountDisplay.textContent = 'KES ' + kesAmount.toLocaleString();
-            }
-            
-            // Update hidden inputs
-            if (mpesaAmountInput) {
-                mpesaAmountInput.value = kesAmount;
-            }
-            
-            if (usdAmountInput) {
-                usdAmountInput.value = usdAmount;
-            }
-            
-            console.log('MPESA amounts updated:', { usd: usdAmount, kes: kesAmount });
-        }
-
-        // Toggle payment method
-        function togglePaymentMethod() {
-            if (stripeRadio.checked) {
-                stripeSection.classList.remove('hidden');
-                mpesaSection.classList.add('hidden');
-            } else {
-                stripeSection.classList.add('hidden');
-                mpesaSection.classList.remove('hidden');
-                // Update amounts when switching to MPESA
-                updateMpesaAmounts();
-            }
-        }
-        
-        stripeRadio.addEventListener('change', togglePaymentMethod);
-        mpesaRadio.addEventListener('change', togglePaymentMethod);
-        
-        // Handle MPESA form submission
-        document.getElementById('mpesa-payment-form').addEventListener('submit', function(e) {
-            const cartItems = document.querySelectorAll('[data-order-table] tr').length;
-            
-            if (cartItems === 0) {
-                e.preventDefault();
-                alert('Your cart is empty. Please add items before paying.');
-                return;
-            }
-            
-            const amount = document.getElementById('mpesa-amount-input').value;
-            
-            if (!amount || amount <= 0) {
-                e.preventDefault();
-                alert('Invalid amount. Please ensure your cart has items.');
-                return;
-            }
-            
-            // Disable button to prevent double submission
-            mpesaSubmitBtn.disabled = true;
-            mpesaSubmitBtn.innerHTML = '<span>Processing...</span>';
-        });
-        
-        // Listen for cart updates from order.js
-        function observeCartChanges() {
-            // Method 1: Listen for the data-order-subtotal changes
-            const subtotalElement = document.querySelector('[data-order-subtotal]');
-            if (subtotalElement) {
-                const observer = new MutationObserver(function(mutations) {
-                    updateMpesaAmounts();
-                });
-                
-                observer.observe(subtotalElement, { 
-                    childList: true, 
-                    characterData: true, 
-                    subtree: true 
-                });
-            }
-            
-            // Method 2: Listen for custom events from order.js
-            document.addEventListener('cartUpdated', function() {
-                updateMpesaAmounts();
+            // Send MPESA request
+            const response = await fetch('{{ route("customer.mpesa.stk-push") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
             });
             
-            // Method 3: Check periodically (fallback)
-            setInterval(updateMpesaAmounts, 1000);
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                // Show success message
+                alert('STK Push sent! Please check your phone and enter your PIN to complete payment.');
+                
+                // You might want to redirect to a waiting page or show a status
+              
+            } else {
+                throw new Error(data.message || 'Error processing MPESA payment');
+            }
+        } catch (error) {
+            console.error('MPESA error:', error);
+            alert('Error: ' + error.message);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+
+    
+    
+    // Listen for cart updates
+    function observeCartChanges() {
+        const subtotalElement = document.querySelector('[data-order-subtotal]');
+        if (subtotalElement) {
+            const observer = new MutationObserver(updateAmounts);
+            observer.observe(subtotalElement, { 
+                childList: true, 
+                characterData: true, 
+                subtree: true 
+            });
         }
         
-        // Initial update
-        setTimeout(updateMpesaAmounts, 500);
-        observeCartChanges();
-    });
-
-
+        document.addEventListener('cartUpdated', updateAmounts);
+        setInterval(updateAmounts, 2000); // Fallback
+    }
     
-
+    observeCartChanges();
+});
 </script>
 
-<!-- just another trial will remove this -->
- <script>
-    // Disable the order.js place order functionality when using Stripe
-    window.disablePlaceOrder = true;
-    
-    // Override the place order listener in order.js
-    document.addEventListener('DOMContentLoaded', function() {
-        // Find and disable the place order button that order.js might be looking for
-        const placeOrderBtn = document.querySelector('[data-order-place]');
-        if (placeOrderBtn) {
-            placeOrderBtn.style.display = 'none';
-        }
-    });
-</script>
-
-<!-- Include your existing scripts (order.js will render the cart) -->
+<!-- Include your existing scripts -->
 <script src="/js/store.js"></script>
 <script src="/js/order/order.js"></script>

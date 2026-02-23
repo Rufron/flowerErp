@@ -13,8 +13,16 @@
     <!-- Top Bar -->
     <header class="bg-white shadow sticky top-0 z-20">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+           
             <!-- Branding -->
             <a href="{{ url('/') }}" class="text-2xl font-bold text-pink-600 flex items-center gap-2">
+                 <!-- logo -->
+                <svg class="h-9 w-auto fill-current text-pink-500" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C12 2 9 4 9 7C9 9 12 11 12 11C12 11 15 9 15 7C15 4 12 2 12 2Z"/>
+                    <path d="M12 11C12 11 14 13 14 16C14 19 12 21 12 21C12 21 10 19 10 16C10 13 12 11 12 11Z"/>
+                    <circle cx="12" cy="9" r="2" fill="white"/>
+                </svg>
+
                 Floriq  Shop
             </a>
 
