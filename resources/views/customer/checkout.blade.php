@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
             button.textContent = 'Processing...';
             button.classList.add('opacity-50', 'cursor-not-allowed');
             
-            // Send to server
+            // Send to server (updated)
             const response = await fetch('{{ route("customer.stripe.checkout") }}', {
                 method: 'POST',
                 headers: {

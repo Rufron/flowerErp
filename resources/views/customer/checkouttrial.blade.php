@@ -1,5 +1,7 @@
 @extends('layouts.checkout')
 
+<!-- this was the initial copy of the checkout.blade.php -->
+ 
 <script>
     // This MUST be set before any other scripts
     window.csrfToken = "{{ csrf_token() }}";
