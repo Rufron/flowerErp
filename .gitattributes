@@ -1,11 +1,12 @@
 * text=auto eol=lf
-
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
-
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+storage/app/public/products/*.jpg filter=lfs diff=lfs merge=lfs -text
+storage/app/public/products/*.jpeg filter=lfs diff=lfs merge=lfs -text
+storage/app/public/products/*.png filter=lfs diff=lfs merge=lfs -text
