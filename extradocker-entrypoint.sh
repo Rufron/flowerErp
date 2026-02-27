@@ -19,5 +19,3 @@
 # # Start PHP-FPM
 # # exec "$@"
 # exec apache2-foreground
-
-
