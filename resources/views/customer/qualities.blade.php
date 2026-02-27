@@ -10,6 +10,19 @@
                          class="h-48 w-full object-cover rounded-t-xl hover:opacity-90 transition">
                          
                 </a>
+
+                <!-- <div>
+                    <div style="display: none;">
+                        Product ID: {{ $product->id }}<br>
+                        Raw image: {{ $product->image }}<br>
+                        Basename: {{ basename($product->image) }}<br>
+                        Full URL: {{ asset('storage/products/' . basename($product->image)) }}
+                    </div>
+                    
+                    <img src="{{ asset('storage/products/' . basename($product->image)) }}" 
+                        alt="{{ $product->name }}"
+                        onerror="this.onerror=null; console.log('Failed to load: ' + this.src);">
+                </div> -->
                 
                 <div class="p-4 flex flex-col items-center">
                     <h5 class="text-lg font-semibold text-gray-800 mb-2">{{ $product->name }}</h5>
