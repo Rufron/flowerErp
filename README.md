@@ -3,7 +3,7 @@
 Floriq is a modern **Enterprise Resource Planning (ERP)** system built with **Laravel** for managing flower businesses.  
 It streamlines customer orders, employee management, and admin operations in one elegant system.  
 
-🚀 **Live Demo:** [Floriq on Railway](https://flowererp-production.up.railway.app/)
+🚀 **Live Demo:** [Floriq on Render(click Here!)](https://flowererp.onrender.com/)
 
 ---
 
